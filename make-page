@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# Short description of the program/script's operation/function.
+#
+
+_BASHPLATE_DIR="$HOME/.local/share/bashplate"
+source "$_BASHPLATE_DIR/bashplate.sh"
+
+def_title="Webtoon comic"
+def_outfile="index.html"
+
+_usage="\
+Usage: $_FILENAME [options] directory
+Description of the program's function (identical).
+
+  Options:
+    -t, --title         page title (default: $def_title)
+    -o, --outfile       outfile name (default: $def_outfile)
+    -v, --verbose       be verbose
+    -h, --help          display this help text and exit\
+"
+
+title="$def_title"
+outfile="$def_outfile"
+css_file="main.css"
+linked_img_dir="img"
+ext="jpg"
+
+while getopts_long :vho:t: opt \
+    verbose 0 \
+    help 0 \
+    outfile 1 \
+    title 1 \
+    "" "$@"
+do
+    case "$opt" in
+        v|verbose) _VERBOSE=$(($_VERBOSE + 1)) ;;
+        h|help) _print_usage 0 ;;
+        :) _err "$OPTLERR"; _print_usage 1 ;;
+
+        o|outfile) outfile="$OPTLARG" ;;
+        t|title) title="$OPTLARG" ;;
+    esac
+done
+shift $((OPTLIND-1))
+
+if [[ ! "$1" ]]; then
+    _err "no arguments passed (expected 1)"
+fi
+
+if [[ ! -d "$1" ]]; then
+    _err "not a directory: $1"
+fi
+
+src_dir="$1"
+
+body=""
+for f in "${src_dir}/"*".$ext"; do
+    body="${body}<img src=\"$linked_img_dir/${f##*/}\">"$'\n'
+done
+
+content="<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=\"utf-8\">
+    <link rel=\"stylesheet\" type=\"text/css\" href=\"$css_file\">
+    <title>$title</title>
+  </head>
+  <body>
+$body
+  </body>
+</html>"
+
+echo "$content" >> "$outfile"

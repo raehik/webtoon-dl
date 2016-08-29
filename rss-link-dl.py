@@ -61,7 +61,7 @@ parser = ArgumentParserUsage(description="Description of the program's function 
 
 # add arguments
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
-parser.add_argument("-r", "--rss", help="URL to comic RSS feed")
+parser.add_argument("rss", metavar="RSS", help="URL to comic RSS feed")
 
 # parse arguments
 args = parser.parse_args()

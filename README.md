@@ -6,6 +6,14 @@ download comic episodes, and put them into an HTML page to mirror the display on
 the LINE Webtoon site.
 
 
+Dependencies
+------------
+
+  * Python 3.x
+  * lxml (`lxml`)
+  * Beautiful Soup (`bs4`)
+
+
 Compliance with NAVER's terms and conditions
 --------------------------------------------
 

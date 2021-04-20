@@ -61,11 +61,9 @@ args.verbose = True
 jar = MozillaCookieJar("cookies.txt")
 jar.load()
 
-def get_image_urls(url):
-    """Retrieve all image URLs to download."""
-    img_dl_urls = []
-
-    log("Downloading page {}".format(url))
+def get_soup(url):
+    """Retrieve a page and return it as a BeautifulSoup object"""
+    log("Downloading url {}".format(url))
     req = request.Request(url)
     jar.add_cookie_header(req)
     page = request.urlopen(req)
@@ -74,6 +72,11 @@ def get_image_urls(url):
     except FeatureNotFound:
         log("lxml not found, using html.parser instead")
         soup = BeautifulSoup(page, "html.parser")
+    return soup
+    
+def get_image_urls(soup):
+    """Retrieve all image URLs to download."""
+    img_dl_urls = []
 
     imgs = soup.find_all(class_="_images")
     for img in imgs:
@@ -83,6 +86,11 @@ def get_image_urls(url):
 
     return img_dl_urls
 
+def get_episodes_urls(soup):
+    """Retrieve the URLs of the others episodes"""
+    ep_list = soup.find(class_="episode_cont")
+    return [ep.find("a")["href"] for ep in ep_list.ul.findAll("li")]
+    
 def download_images(urls, outdir):
     """Download each image in urls to existing directory outdir."""
     referer_header = { "Referer": img_referer }
@@ -100,5 +108,5 @@ if os.path.exists(args.dir):
 else:
     os.makedirs(args.dir, exist_ok=True)
 
-img_urls = get_image_urls(args.url)
+img_urls = get_image_urls(get_soup(args.url))
 download_images(img_urls, args.dir)

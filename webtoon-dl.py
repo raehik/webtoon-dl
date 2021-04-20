@@ -52,6 +52,9 @@ parser = ArgumentParserUsage(description="Download all images from a LINE Webtoo
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
 parser.add_argument("-d", "--dir", default=".",
                     help="directory to store downloaded images in (default: .)")
+parser.add_argument("-e", "--episodes", action="store_true",
+                    help="download episodes in separate directories "
+                    "regardless the provided episode")
 parser.add_argument("url", metavar="URL", help="Webtoon comic URL")
 args = parser.parse_args()
 
@@ -102,11 +105,20 @@ def download_images(urls, outdir):
         with request.urlopen(req) as response, open("{}/{:03}.jpg".format(outdir, count), "wb") as outfile:
             shutil.copyfileobj(response, outfile)
 
+def download_episode(url, outdir):
+    img_urls = get_image_urls(get_soup(url))
+    download_images(img_urls, outdir)
+            
 if os.path.exists(args.dir):
     if not os.path.isdir(args.dir):
         error("not a directory: {}".format(args.dir), 1)
 else:
     os.makedirs(args.dir, exist_ok=True)
 
-img_urls = get_image_urls(get_soup(args.url))
-download_images(img_urls, args.dir)
+if args.episodes:
+    for no,url in enumerate(get_episodes_urls(get_soup(args.url))):
+        outdir = os.path.join(args.dir, "{:03}".format(no))
+        os.makedirs(outdir, exist_ok=True)
+        download_episode(url, outdir)
+else:
+    download_episode(args.url, args.dir)

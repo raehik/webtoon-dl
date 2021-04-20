@@ -9,6 +9,7 @@ import os
 from bs4 import BeautifulSoup
 from urllib import request
 import shutil
+from http.cookiejar import MozillaCookieJar
 
 img_referer = 'http://www.webtoons.com'
 FILENAME = sys.argv[0]
@@ -57,13 +58,17 @@ args = parser.parse_args()
 # force verbosity for now
 args.verbose = True
 
+jar = MozillaCookieJar("cookies.txt")
+jar.load()
+
 def get_image_urls(page):
     """Retrieve all image URLs to download."""
     img_dl_urls = []
 
     log("Downloading page {}".format(page))
-    req = request.urlopen(page).read()
-    soup = BeautifulSoup(req, "lxml")
+    req = request.Request(page)
+    jar.add_cookie_header(req)
+    soup = BeautifulSoup(request.urlopen(req), "lxml")
 
     imgs = soup.find_all(class_="_images")
     for img in imgs:

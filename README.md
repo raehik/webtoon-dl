@@ -10,8 +10,8 @@ Dependencies
 ------------
 
   * Python 3.x
-  * lxml (`lxml`)
   * Beautiful Soup (`bs4`)
+  * lxml (`lxml`) (optional)
 
 
 Compliance with NAVER's terms and conditions

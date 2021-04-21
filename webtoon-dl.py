@@ -6,7 +6,7 @@
 import sys
 import argparse
 import os
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, FeatureNotFound
 from urllib import request
 import shutil
 
@@ -57,13 +57,19 @@ args = parser.parse_args()
 # force verbosity for now
 args.verbose = True
 
-def get_image_urls(page):
+def get_image_urls(url):
     """Retrieve all image URLs to download."""
     img_dl_urls = []
 
-    log("Downloading page {}".format(page))
-    req = request.urlopen(page).read()
-    soup = BeautifulSoup(req, "lxml")
+    log("Downloading page {}".format(url))
+    req = request.Request(url)
+    page = request.urlopen(req)
+    
+    try:
+        soup = BeautifulSoup(page, "lxml")
+    except FeatureNotFound:
+        log("lxml not found, using html.parser instead")
+        soup = BeautifulSoup(page, "html.parser")
 
     imgs = soup.find_all(class_="_images")
     for img in imgs:

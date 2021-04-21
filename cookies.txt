@@ -1,0 +1,5 @@
+# Netscape HTTP Cookie File
+.webtoons.com	TRUE	/	FALSE	281474976710656	needGDPR	false
+.webtoons.com	TRUE	/	FALSE	281474976710656	needCCPA	false
+.webtoons.com	TRUE	/	FALSE	281474976710656	needCOPPA	false
+

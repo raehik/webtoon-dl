@@ -67,8 +67,8 @@ def get_image_urls(url):
 
     log("Downloading page {}".format(url))
     req = request.Request(url)
-    page = request.urlopen(req)
     jar.add_cookie_header(req)
+    page = request.urlopen(req)
     try:
         soup = BeautifulSoup(page, "lxml")
     except FeatureNotFound:

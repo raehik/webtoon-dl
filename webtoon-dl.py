@@ -57,10 +57,12 @@ def mkdir(*args, **kwargs):
     
 """guess already downloaded episodes in a directory"""
 def guess_start(d):
-    return max([int(x) for x in listdir(d) if x.isdecimal()]) - 1
+    return max([int(x) for x in listdir(d) if x.isdecimal()])
 
-# checks if there are episode folders into the targeted folder
-    
+# One probably want to download the first episode not downloaded
+# the -1 is if the last download went wrong, so check the last downloaded
+
+
 parser = ArgumentParserUsage(description="Download all images from a LINE Webtoon comic episode.")
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
 parser.add_argument("-p", "--dry-run", action="store_true",
@@ -83,6 +85,11 @@ parser.add_argument("url", metavar="URL", help="Webtoon comic URL")
 jar = MozillaCookieJar(join(realpath(dirname(FILENAME)), "cookies.txt"))
 jar.load()
 
+def get_name(url):
+    """return the (url encoded) name of the comic from the url of an episode
+    To be improved"""
+    return url.split("/")[-3]
+    
 def get_soup(url):
     """Retrieve a page and return it as a BeautifulSoup object"""
     log("Downloading url {}".format(url))
@@ -113,7 +120,7 @@ def download_images(urls, outdir):
     for c, url in enumerate(urls):
         target = join(outdir, "{:03}.jpg".format(c))
         if isfile(target):
-            log("Image {}  is already dowloaded".format(c, url))
+            log("Image {}  is already dowloaded".format(c))
             continue
 
         log("Downloading image {} at {}".format(c, url))
@@ -126,11 +133,12 @@ def download_episode(url, outdir):
     img_urls = get_image_urls(get_soup(url))
     download_images(img_urls, outdir)
 
+
 if __name__ == "__main__":
     args = parser.parse_args()
     verb = args.verbose
     dry = args.dry_run
-    
+
     if exists(args.dir):
         if not isdir(args.dir):
             error("not a directory: {}".format(args.dir), 1)
@@ -138,11 +146,23 @@ if __name__ == "__main__":
         mkdir(args.dir, exist_ok=True)
 
     if args.episodes:
+        # checking
+        stamp = join(args.dir, ".webtoon-dl")
+        if isfile(stamp):
+            log("checking stamp in dest dir")
+            with open(stamp, 'r') as f:
+                if f.read() != get_name(args.url):
+                    error("non-matching stamps", 2)
+        else:
+            log("writing stamp in dest dir")
+            with open(stamp, 'w') as f:
+                f.write(get_name(args.url))
+
         if args.guess_start:
             args.start = guess_start(args.dir)
 
-        for no,url in enumerate(get_episodes_urls(get_soup(args.url))
-                                [args.start:], start = args.start):
+        for no, url in enumerate(get_episodes_urls(get_soup(args.url))
+                                 [args.start:], start=args.start):
             outdir = join(args.dir, "{:03}".format(no))
             mkdir(outdir, exist_ok=True)
             download_episode(url, outdir)

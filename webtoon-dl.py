@@ -69,25 +69,18 @@ def get_soup(url):
     log("Downloading url {}".format(url))
     req = request.Request(url)
     jar.add_cookie_header(req)
-    page = request.urlopen(req)
-    try:
-        soup = BeautifulSoup(page, "lxml")
-    except FeatureNotFound:
-        log("lxml not found, using html.parser instead")
-        soup = BeautifulSoup(page, "html.parser")
+    with request.urlopen(req) as page:
+        try:
+            soup = BeautifulSoup(page, "lxml")
+        except FeatureNotFound:
+            log("lxml not found, fallback to default")
+            soup = BeautifulSoup(page)
     return soup
     
 def get_image_urls(soup):
     """Retrieve all image URLs to download."""
-    img_dl_urls = []
-
-    imgs = soup.find_all(class_="_images")
-    for img in imgs:
-        # get image URL, remove the lower quality bit GET
-        img_url = img["data-url"].replace("?type=q90", "")
-        img_dl_urls.append(img_url)
-
-    return img_dl_urls
+    return [img["data-url"].replace("?type=q90", "")
+            for img in soup(class_="_images")]
 
 def get_episodes_urls(soup):
     """Retrieve the URLs of the others episodes"""
@@ -97,12 +90,11 @@ def get_episodes_urls(soup):
 def download_images(urls, outdir):
     """Download each image in urls to existing directory outdir."""
     referer_header = { "Referer": img_referer }
-    count = 0
-    for url in urls:
-        log("Downloading image {} at {}".format(count, url))
-        count += 1
+    for c, url in enumerate(urls):
+        log("Downloading image {} at {}".format(c, url))
         req = request.Request(url, headers=referer_header)
-        with request.urlopen(req) as response, open("{}/{:03}.jpg".format(outdir, count), "wb") as outfile:
+        with request.urlopen(req) as response,\
+             open(os.path.join(outdir, ":03}.jpg".format(c)), "wb") as outfile:
             shutil.copyfileobj(response, outfile)
 
 def download_episode(url, outdir):

@@ -15,6 +15,8 @@ from http.cookiejar import MozillaCookieJar
 img_referer = 'http://www.webtoons.com'
 FILENAME = sys.argv[0]
 
+verb = True
+
 """Argparse override to print usage to stderr on argument error."""
 class ArgumentParserUsage(argparse.ArgumentParser):
     def error(self, message):
@@ -39,7 +41,7 @@ def log_message(message, pipe=sys.stdout):
 
 """If verbose, log an event."""
 def log(message):
-    if not args.verbose:
+    if not verb:
         return
     log_message(message)
 
@@ -54,15 +56,15 @@ parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
 parser.add_argument("-d", "--dir", default=".",
                     help="directory to store downloaded images in (default: .)")
 parser.add_argument("-e", "--episodes", action="store_true",
-                    help="download episodes in separate directories "
+                    help="download full serie, each episode in a directory "
                     "regardless the provided episode")
+parser.add_argument("-s", "--start", default=0, type=int, metavar="ST",
+                    help="starting episode, to be used with -e. "
+                    "Warning : episode number in webtoons and episode number"
+                    "in the title may not match the value")
 parser.add_argument("url", metavar="URL", help="Webtoon comic URL")
-args = parser.parse_args()
 
-# force verbosity for now
-args.verbose = True
-
-jar = MozillaCookieJar(join(realpath(dirname(sys.argv[0])), "cookies.txt"))
+jar = MozillaCookieJar(join(realpath(dirname(FILENAME)), "cookies.txt"))
 jar.load()
 
 def get_soup(url):
@@ -108,6 +110,9 @@ def download_episode(url, outdir):
     download_images(img_urls, outdir)
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+    verb = args.verbose
+    
     if exists(args.dir):
         if not isdir(args.dir):
             error("not a directory: {}".format(args.dir), 1)
@@ -115,7 +120,8 @@ if __name__ == "__main__":
         makedirs(args.dir, exist_ok=True)
 
     if args.episodes:
-        for no,url in enumerate(get_episodes_urls(get_soup(args.url))):
+        for no,url in enumerate(get_episodes_urls(get_soup(args.url))
+                                [args.start:], start = args.start):
             outdir = join(args.dir, "{:03}".format(no))
             makedirs(outdir, exist_ok=True)
             download_episode(url, outdir)

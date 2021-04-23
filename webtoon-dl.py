@@ -53,15 +53,21 @@ def error(message, exit_code=None):
 
 parser = ArgumentParserUsage(description="Download all images from a LINE Webtoon comic episode.")
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
+parser.add_argument("--dry-run", action="store_true", help="do not download "
+                    "files, only print urls")
 parser.add_argument("-d", "--dir", default=".",
                     help="directory to store downloaded images in (default: .)")
 parser.add_argument("-e", "--episodes", action="store_true",
                     help="download full serie, each episode in a directory "
                     "regardless the provided episode")
-parser.add_argument("-s", "--start", default=0, type=int, metavar="ST",
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-s", "--start", default=0, type=int, metavar="ST",
                     help="starting episode, to be used with -e. "
                     "Warning : episode number in webtoons and episode number"
                     "in the title may not match the value")
+group.add_argument("-g", "--guess-start", action="store_true",
+                    help="guess the already downloadded episodes, "  
+                    "to be used with -e.")
 parser.add_argument("url", metavar="URL", help="Webtoon comic URL")
 
 jar = MozillaCookieJar(join(realpath(dirname(FILENAME)), "cookies.txt"))
@@ -120,6 +126,7 @@ if __name__ == "__main__":
         makedirs(args.dir, exist_ok=True)
 
     if args.episodes:
+        print(args.guess_start)
         for no,url in enumerate(get_episodes_urls(get_soup(args.url))
                                 [args.start:], start = args.start):
             outdir = join(args.dir, "{:03}".format(no))

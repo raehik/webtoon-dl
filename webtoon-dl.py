@@ -5,7 +5,7 @@
 
 import sys
 import argparse
-from os import makedirs
+from os import makedirs, listdir
 from os.path import join, realpath, dirname, isfile, isdir, exists
 from bs4 import BeautifulSoup, FeatureNotFound
 from urllib import request
@@ -54,7 +54,13 @@ def mkdir(*args, **kwargs):
     if not dry:
         return makedirs(*args, **kwargs)
     log("faking make directory" + str(args))
-        
+    
+"""guess already downloaded episodes in a directory"""
+def guess_start(d):
+    return max([int(x) for x in listdir(d) if x.isdecimal()]) - 1
+
+# checks if there are episode folders into the targeted folder
+    
 parser = ArgumentParserUsage(description="Download all images from a LINE Webtoon comic episode.")
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
 parser.add_argument("-p", "--dry-run", action="store_true",
@@ -132,6 +138,9 @@ if __name__ == "__main__":
         mkdir(args.dir, exist_ok=True)
 
     if args.episodes:
+        if args.guess_start:
+            args.start = guess_start(args.dir)
+
         for no,url in enumerate(get_episodes_urls(get_soup(args.url))
                                 [args.start:], start = args.start):
             outdir = join(args.dir, "{:03}".format(no))

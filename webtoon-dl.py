@@ -80,6 +80,9 @@ group.add_argument("-s", "--start", default=0, type=int, metavar="ST",
 group.add_argument("-g", "--guess-start", action="store_true",
                     help="guess the already downloadded episodes, "  
                     "to be used with -e.")
+parser.add_argument("-n", "--no-check", action="store_false", dest="check",
+                    help="check for a comic stamp in the dest folder"  
+                    "used to avoid errors, to be used with -e.")
 parser.add_argument("url", metavar="URL", help="Webtoon comic URL")
 
 jar = MozillaCookieJar(join(realpath(dirname(FILENAME)), "cookies.txt"))
@@ -147,16 +150,17 @@ if __name__ == "__main__":
 
     if args.episodes:
         # checking
-        stamp = join(args.dir, ".webtoon-dl")
-        if isfile(stamp):
-            log("checking stamp in dest dir")
-            with open(stamp, 'r') as f:
-                if f.read() != get_name(args.url):
-                    error("non-matching stamps", 2)
-        else:
-            log("writing stamp in dest dir")
-            with open(stamp, 'w') as f:
-                f.write(get_name(args.url))
+        if args.check:
+            stamp = join(args.dir, ".webtoon-dl")
+            if isfile(stamp):
+                log("checking stamp in dest dir")
+                with open(stamp, 'r') as f:
+                    if f.read() != get_name(args.url):
+                        error("non-matching stamps", 2)
+            else:
+                log("writing stamp in dest dir")
+                with open(stamp, 'w') as f:
+                    f.write(get_name(args.url))
 
         if args.guess_start:
             args.start = guess_start(args.dir)

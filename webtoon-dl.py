@@ -5,7 +5,8 @@
 
 import sys
 import argparse
-import os
+from os import makedirs
+from os.path import join, realpath, dirname, isfile, isdir, exists
 from bs4 import BeautifulSoup, FeatureNotFound
 from urllib import request
 import shutil
@@ -61,7 +62,7 @@ args = parser.parse_args()
 # force verbosity for now
 args.verbose = True
 
-jar = MozillaCookieJar("cookies.txt")
+jar = MozillaCookieJar(join(realpath(dirname(sys.argv[0])), "cookies.txt"))
 jar.load()
 
 def get_soup(url):
@@ -92,9 +93,9 @@ def download_images(urls, outdir):
     referer_header = { "Referer": img_referer }
 
     for c, url in enumerate(urls):
-        target = os.path.join(outdir, "{03}.jpg".format(c))
-        if os.path.isfile(target):
-            log("Image {} at {} is already dowloaded".format(c, url))
+        target = join(outdir, "{:03}.jpg".format(c))
+        if isfile(target):
+            log("Image {}  is already dowloaded".format(c, url))
             continue
 
         log("Downloading image {} at {}".format(c, url))
@@ -107,16 +108,16 @@ def download_episode(url, outdir):
     download_images(img_urls, outdir)
 
 if __name__ == "__main__":
-    if os.path.exists(args.dir):
-        if not os.path.isdir(args.dir):
+    if exists(args.dir):
+        if not isdir(args.dir):
             error("not a directory: {}".format(args.dir), 1)
     else:
-        os.makedirs(args.dir, exist_ok=True)
+        makedirs(args.dir, exist_ok=True)
 
     if args.episodes:
         for no,url in enumerate(get_episodes_urls(get_soup(args.url))):
-            outdir = os.path.join(args.dir, "{:03}".format(no))
-            os.makedirs(outdir, exist_ok=True)
+            outdir = join(args.dir, "{:03}".format(no))
+            makedirs(outdir, exist_ok=True)
             download_episode(url, outdir)
     else:
         download_episode(args.url, args.dir)

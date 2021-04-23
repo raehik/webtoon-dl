@@ -90,27 +90,33 @@ def get_episodes_urls(soup):
 def download_images(urls, outdir):
     """Download each image in urls to existing directory outdir."""
     referer_header = { "Referer": img_referer }
+
     for c, url in enumerate(urls):
+        target = os.path.join(outdir, "{03}.jpg".format(c))
+        if os.path.isfile(target):
+            log("Image {} at {} is already dowloaded".format(c, url))
+            continue
+
         log("Downloading image {} at {}".format(c, url))
         req = request.Request(url, headers=referer_header)
-        with request.urlopen(req) as response,\
-             open(os.path.join(outdir, ":03}.jpg".format(c)), "wb") as outfile:
+        with request.urlopen(req) as response, open(target, "wb") as outfile:
             shutil.copyfileobj(response, outfile)
 
 def download_episode(url, outdir):
     img_urls = get_image_urls(get_soup(url))
     download_images(img_urls, outdir)
-            
-if os.path.exists(args.dir):
-    if not os.path.isdir(args.dir):
-        error("not a directory: {}".format(args.dir), 1)
-else:
-    os.makedirs(args.dir, exist_ok=True)
 
-if args.episodes:
-    for no,url in enumerate(get_episodes_urls(get_soup(args.url))):
-        outdir = os.path.join(args.dir, "{:03}".format(no))
-        os.makedirs(outdir, exist_ok=True)
-        download_episode(url, outdir)
-else:
-    download_episode(args.url, args.dir)
+if __name__ == "__main__":
+    if os.path.exists(args.dir):
+        if not os.path.isdir(args.dir):
+            error("not a directory: {}".format(args.dir), 1)
+    else:
+        os.makedirs(args.dir, exist_ok=True)
+
+    if args.episodes:
+        for no,url in enumerate(get_episodes_urls(get_soup(args.url))):
+            outdir = os.path.join(args.dir, "{:03}".format(no))
+            os.makedirs(outdir, exist_ok=True)
+            download_episode(url, outdir)
+    else:
+        download_episode(args.url, args.dir)

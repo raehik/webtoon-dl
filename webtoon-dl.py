@@ -15,8 +15,6 @@ from http.cookiejar import MozillaCookieJar
 img_referer = 'http://www.webtoons.com'
 FILENAME = sys.argv[0]
 
-verb = True
-
 """Argparse override to print usage to stderr on argument error."""
 class ArgumentParserUsage(argparse.ArgumentParser):
     def error(self, message):
@@ -50,11 +48,17 @@ def error(message, exit_code=None):
     log_message("error: " + message, sys.stderr)
     if exit_code:
         sys.exit(exit_code)
-
+        
+"""makes directory if not dry-run mode"""
+def mkdir(*args, **kwargs):
+    if not dry:
+        return makedirs(*args, **kwargs)
+    log("faking make directory" + str(args))
+        
 parser = ArgumentParserUsage(description="Download all images from a LINE Webtoon comic episode.")
 parser.add_argument("-v", "--verbose", action="store_true", help="be verbose")
-parser.add_argument("--dry-run", action="store_true", help="do not download "
-                    "files, only print urls")
+parser.add_argument("-p", "--dry-run", action="store_true",
+                    help="don't download images, only print urls")
 parser.add_argument("-d", "--dir", default=".",
                     help="directory to store downloaded images in (default: .)")
 parser.add_argument("-e", "--episodes", action="store_true",
@@ -108,8 +112,9 @@ def download_images(urls, outdir):
 
         log("Downloading image {} at {}".format(c, url))
         req = request.Request(url, headers=referer_header)
-        with request.urlopen(req) as response, open(target, "wb") as outfile:
-            shutil.copyfileobj(response, outfile)
+        if not dry:
+            with request.urlopen(req) as response, open(target, "wb") as outfile:
+                shutil.copyfileobj(response, outfile)
 
 def download_episode(url, outdir):
     img_urls = get_image_urls(get_soup(url))
@@ -118,19 +123,19 @@ def download_episode(url, outdir):
 if __name__ == "__main__":
     args = parser.parse_args()
     verb = args.verbose
+    dry = args.dry_run
     
     if exists(args.dir):
         if not isdir(args.dir):
             error("not a directory: {}".format(args.dir), 1)
     else:
-        makedirs(args.dir, exist_ok=True)
+        mkdir(args.dir, exist_ok=True)
 
     if args.episodes:
-        print(args.guess_start)
         for no,url in enumerate(get_episodes_urls(get_soup(args.url))
                                 [args.start:], start = args.start):
             outdir = join(args.dir, "{:03}".format(no))
-            makedirs(outdir, exist_ok=True)
+            mkdir(outdir, exist_ok=True)
             download_episode(url, outdir)
     else:
         download_episode(args.url, args.dir)

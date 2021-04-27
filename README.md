@@ -1,30 +1,40 @@
-LINE Webtoon comic downloader
-=============================
+# WEBTOON / Naver Webtoon / LINE Manga comic downloader
+A set of Python scripts that can parse [WEBTOON](https://www.webtoons.com/en)
+RSS feeds, download comic episodes, and place the images into an HTML page
+similar to the display on the WEBTOON site.
 
-This is a set of non-interactive scripts which can parse LINE Webtoon RSS feeds,
-download comic episodes, and put them into an HTML page to mirror the display on
-the LINE Webtoon site.
+Originally written in 2016 targeting the English WEBTOON site (then LINE
+Webtoon) to temporarily archive some comics.
 
-
-Dependencies
-------------
-
-  * Python 3.x
-  * Beautiful Soup (`bs4`)
-  * lxml (`lxml`) (optional)
+## Usage
 
 
-Compliance with NAVER's terms and conditions
---------------------------------------------
+## Dependencies
+Python 3, plus the following libraries:
 
+  * Beautiful Soup (`pip install bs4`)
+  * *(optional)* lxml (`pip install lxml`): if present, used as the HTML parser
+
+## Authors
+Originally created by [@raehik](https://twitter.com/raehik).
+
+Many thanks to [adud](https://github.com/adud) for their fixes and improvements.
+
+## Contributing
+This was originally written by an underexperienced raehik in 2016-7 and wasn't
+all that clear. Any PRs to improve or extend the project will be gladly
+received!
+
+## Compliance with WEBTOON's terms and conditions
 [webtoon-toc]: http://www.webtoons.com/en/terms
 
-Please make sure you understand LINE Webtoon's [terms and
-conditions][webtoon-toc]. To my knowledge, **none of these programs break any
-rules or terms**. I am not circumventing any DRM or copy protection by
-downloading images from LINE Webtoon.
+*Correct as of 2021-04-27, TOCs last updated 2020-12-16.*
 
-NAVER specify that you may only keep comics for 30 days after downloading
-(section 2B), and you may not redistribute or copy the content onto any other
-devices (section 2C). If you wish to breach the T&Cs I only request that you
-understand the implications!
+IANAL, this does not constitute legal advice.
+
+To the authors' knowledge, this software does not breach WEBTOON's TOCs. No DRM
+circumvention or bypassing is attempted -- the software acts as an autonomous,
+but otherwise regular browser.
+
+All users are encouraged to read the [WEBTOON terms and conditions][webtoon-toc]
+and confirm that their usage is abiding.
